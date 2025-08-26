@@ -5,3 +5,7 @@
 ![](https://github-readme-stats.vercel.app/api?username=naokoo&count_private=true&show_icons=true&theme=dracula)
 
 ![](./profile-3d-contrib/profile-season-animate.svg)
+
+## 🎮 Breakout Game
+<!-- ゲームをプレイするには下の画像をクリック！ -->
+![Breakout Game](./breakout.svg)

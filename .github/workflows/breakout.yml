@@ -1,0 +1,30 @@
+name: Generate Breakout Game
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # 6時間ごとに実行
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    name: Generate breakout game
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Generate breakout game
+        uses: cyprieng/github-breakout@v1.0.0
+        with:
+          # GitHubユーザー名
+          github_user_name: ${{ github.repository_owner }}
+          # SVGファイルの出力パス
+          svg_out_path: breakout.svg
+          
+      - name: Commit and push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add breakout.svg
+          git diff --staged --quiet || git commit -m "Update breakout game"
+          git push
