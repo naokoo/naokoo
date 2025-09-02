@@ -2,29 +2,43 @@ name: Generate Breakout Game
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # 6時間ごとに実行
-  workflow_dispatch:  # 手動実行も可能
+    - cron: '0 */6 * * *'   # 6時間ごと
+  workflow_dispatch:
 
 jobs:
   generate:
     runs-on: ubuntu-latest
     name: Generate breakout game
+    permissions:
+      contents: write
+    timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-        
-      - name: Generate breakout game
-        uses: cyprieng/github-breakout@v1.0.0
+        uses: actions/checkout@v4
+
+      - name: Generate SVGs
+        uses: cyprieng/github-breakout@v1.1.0
         with:
-          # GitHubユーザー名
-          github_user_name: ${{ github.repository_owner }}
-          # SVGファイルの出力パス
-          svg_out_path: breakout.svg
-          
-      - name: Commit and push
+          github_username: ${{ github.repository_owner }}
+          # 任意: 別トークンを使う場合だけ指定（通常は不要）
+          # github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Stage generated images
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add breakout.svg
-          git diff --staged --quiet || git commit -m "Update breakout game"
-          git push
+          mkdir -p /tmp/breakout-images
+          mv output/light.svg /tmp/breakout-images/breakout-light.svg
+          mv output/dark.svg  /tmp/breakout-images/breakout-dark.svg
+
+      - name: Commit to github-breakout branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # 画像専用の孤立ブランチを毎回作り直して push
+          git checkout --orphan github-breakout
+          git rm -rf .
+          mkdir -p images
+          mv /tmp/breakout-images/* images/
+          git add images
+          git commit -m "chore: update GitHub breakout SVGs" || echo "No changes to commit"
+          git push --force origin github-breakout
